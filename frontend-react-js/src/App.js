@@ -25,14 +25,6 @@ const router = createBrowserRouter([
     element: <UserFeedPage />
   },
   {
-    path: "/messages",
-    element: <MessageGroupsPage />
-  },
-  {
-    path: "/messages/@:handle",
-    element: <MessageGroupPage />
-  },
-  {
     path: "/signup",
     element: <SignupPage />
   },
@@ -57,5 +49,4 @@ function App() {
     </>
   );
 }
-
 export default App;
