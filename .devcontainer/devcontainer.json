@@ -5,7 +5,11 @@
 	"features": {
 		"ghcr.io/devcontainers/features/aws-cli:1": {
 			"version": "latest"
-		}
+		},
+
+    "remoteEnv": {
+		"AWS_CLI_AUTO_PROMPT": "on-partial"
+
 	},
 	"customizations": {
 		"vscode": {
@@ -29,4 +33,4 @@
 
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "devcontainer"
-}
+}, 
