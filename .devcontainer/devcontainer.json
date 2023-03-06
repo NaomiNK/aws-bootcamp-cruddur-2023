@@ -11,11 +11,12 @@
 		"vscode": {
 			"extensions": [
 				"ms-azuretools.vscode-docker",
-				"ms-python.python"
-				"dracula-theme.theme-dracula"
+				"ms-python.python",
+				"dracula-theme.theme-dracula",
+				"ms-python.vscode-pylance"
 			]
 			"settings": {
-				"terminal.intergrated.fontsize": 16,
+				"terminal.intergratedd.fontsize": 16,
 				"editor.fontsize": 16
 			}
 		}
