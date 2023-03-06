@@ -12,8 +12,8 @@
 			"extensions": [
 				"ms-azuretools.vscode-docker",
 				"ms-python.python",
-				"dracula-theme.theme-dracula",
-			]
+				"dracula-theme.theme-dracula"
+			],
 			"settings": {
 				"workbench.colorTheme": "Default Dark+ Experimental",
 				"terminal.intergratedd.fontsize": 16,
