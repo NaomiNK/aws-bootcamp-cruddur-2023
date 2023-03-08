@@ -8,30 +8,31 @@ import { Auth } from 'aws-amplify';
 
 export default function SigninPage() 
 
-  const [email, setEmail] = React.useState('');
+  {const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [errors, setErrors] = React.useState('');
 
   const onsubmit = async (event) => {
-    setErrors('')
-    event.preventDefault();
-    try {
-      Auth.signIn(email, password)
-        .then(user => {
-          localStorage.setItem("access_token", user.signInUserSession.accessToken.jwtToken)
-          window.location.href = "/"
-        })
-        .catch(error => { 
-          if (error.code == 'UserNotConfirmedException') {
-            window.location.href = "/confirm"
-          }
-          setErrors(error.message)
-        });  
-        return false
-      }
+  setErrors('')
+  event.preventDefault();
+  try {
+    Auth.signIn(email, password)
+      .then(user => {
+        localStorage.setItem("access_token", user.signInUserSession.accessToken.jwtToken)
+        window.location.href = "/"
+      })
+      .catch(error => { console.log('Error!', error) });
+    } catch (error) {
+    if (error.code == 'UserNotConfirmedException') {
+      window.location.href = "/confirm"
     }
+    setErrors(error.message)
+  }
+    return false
+} 
+
   const email_onchange = (event) => {
-    setEmail(event.target.value);
+  setEmail(event.target.value);
     }
   const password_onchange = (event) => {
     setPassword(event.target.value);
@@ -87,4 +88,4 @@ export default function SigninPage()
       </div>
 
     </article> 
-)
+  )}
