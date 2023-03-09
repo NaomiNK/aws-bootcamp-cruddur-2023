@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request
 from flask_cors import CORS, cross_origin
 import os
+import sys
 
 from services.home_activities import *
 from services.notifications_activities import *
@@ -13,6 +14,8 @@ from services.message_groups import *
 from services.messages import *
 from services.create_message import *
 from services.show_activity import *
+
+from lib.cognito_token_verification import CognitoTokenVerification
 
 # Honeycomb ...
 from opentelemetry import trace
@@ -48,15 +51,16 @@ from flask import got_request_exception
 #LOGGER.info("test log")
 
 # Honeycomb ...
-# Initialize tracing and an exporter that can send data to Honeycomb
+#Initialize tracing and an exporter that can send data to Honeycomb
 provider = TracerProvider()
 processor = BatchSpanProcessor(OTLPSpanExporter())
 provider.add_span_processor(processor)
 
 # X-RAY...
-#xray_url = os.getenv("AWS_XRAY_URL")
-#xray_recorder.configure(service='Cruddur', dynamic_naming=xray_url)
+xray_url = os.getenv("AWS_XRAY_URL")
+xray_recorder.configure(service='Cruddur', dynamic_naming=xray_url)
 
+# OTEL
 # show this in the backend-flask app (STDOUT)
 #simple_processor = SimpleSpanProcessor(ConsoleSpanExporter())
 #provider.add_span_processor(simple_processor)
@@ -66,30 +70,37 @@ tracer = trace.get_tracer(__name__)
 
 app = Flask(__name__)
 
+cognito_jwt_token = CognitoJwtToken(
+  user_pool_id=os.getenv("AWS_COGNITO_USER_POOL_ID")
+  user_pool_client_id=os.getenv("AWS_COGNITO_USER_POOL_CLIENT_ID")
+  region=os.getenv("AWS_DEFAULT_REGION")
+)
+
 # X-RAY...
-#XRayMiddleware(app, xray_recorder)
+XRayMiddleware(app, xray_recorder)
 
 # Honeycomb...
 # Initialize tracing and an exporter that can send data to Honeycomb
-FlaskInstrumentor().instrument_app(app)
+FlaskInstrumentor().instrument_app(app) 
 RequestsInstrumentor().instrument()
+
 
 frontend = os.getenv('FRONTEND_URL')
 backend = os.getenv('BACKEND_URL')
 origins = [frontend, backend]
 cors = CORS(
-  app, 
+   app, 
   resources={r"/api/*": {"origins": origins}},
-  expose_headers="location,link",
-  allow_headers="content-type,if-modified-since",
+  headers=['Content-Type', 'Authorization'], 
+  expose_headers='Authorization',
   methods="OPTIONS,GET,HEAD,POST"
 )
 
 #@app.after_request
 #def after_request(response):
-#    timestamp = strftime('[%Y-%b-%d %H:%M]')
+#   timestamp = strftime('[%Y-%b-%d %H:%M]')
 #   LOGGER.error('%s %s %s %s %s %s', timestamp, request.remote_addr, request.method, request.scheme, request.full_path, response.status)
-#    return response
+#   return response
 
 #ROLLBAR ...
 rollbar_access_token = os.getenv('ROLLBAR_ACCESS_TOKEN')
@@ -97,16 +108,16 @@ rollbar_access_token = os.getenv('ROLLBAR_ACCESS_TOKEN')
 def init_rollbar():
     """init rollbar module"""
     rollbar.init(
-        # access token
+         #access token
         rollbar_access_token,
-        # environment name
+         #environment name
         'production',
-        # server root directory, makes tracebacks prettier
+         #server root directory, makes tracebacks prettier
         root=os.path.dirname(os.path.realpath(__file__)),
-        # flask already sets up logging
+        #flask already sets up logging
         allow_logging_basic_config=False)
 
-    # send exceptions from `app` to rollbar, using flask's signal system.
+     #send exceptions from `app` to rollbar, using flask's signal system.
     got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
 
 @app.route('/rollbar/test')
@@ -151,18 +162,20 @@ def data_create_message():
 
 @app.route("/api/activities/home", methods=['GET'])
 @xray_recorder.capture('activities_home')
-def data_home(): 
-  print( 'AUTH HEADER...')
-  print(
-    request.headers.get('Authorization')
-  )
+@aws_auth.authentication_required
+def data_home():
+  access_token = CognitoJwtTokenextract_access_token(request.header)
+    try:
+      claims = cognito_jwt_token.token_service.verify(access.token)
+    except TokenVerifyError as e:
+         _ = request.data
+        abort(make_response(jsonify(message=str(e)), 401))
+
+  app.logger.debug('claims')
+  app.logger.debug(claims)
+
   data = HomeActivities.run()
-  return data, 200
 
-
-@app.route("/api/activities/notifications", methods=['GET'])
-def data_notifications():
-  data = NotificationsActivities.run()
   return data, 200
 
 @app.route("/api/activities/@<string:handle>", methods=['GET'])
