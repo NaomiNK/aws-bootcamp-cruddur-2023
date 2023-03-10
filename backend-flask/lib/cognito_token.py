@@ -111,3 +111,4 @@ class CognitoJwtToken:
         self._check_audience(claims)
 
         self.claims = claims
+        return.claims = claims
