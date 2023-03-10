@@ -70,11 +70,11 @@ tracer = trace.get_tracer(__name__)
 
 app = Flask(__name__)
 
-cognito_jwt_token = CognitoJwtToken(
-   user_pool_id=os.getenv('AWS_COGNITO_USER_POOL_ID')
-   user_pool_client_id=os.getenv('AWS_COGNITO_USER_POOL_CLIENT_ID')
-   region=os.getenv('AWS_DEFAULT_REGION')
-)
+cognito_jwt_token = CognitoJwtToken( 
+  user_pool_id=os.getenv("AWS_COGNITO_USER_POOL_ID"),
+  user_pool_client_id=os.getenv("AWS_COGNITO_USER_POOL_CLIENT_ID"),
+  region=os.getenv("AWS_DEFAULT_REGION"),
+ )
 
 # X-RAY...
 XRayMiddleware(app, xray_recorder)
@@ -158,26 +158,24 @@ def data_create_message():
     return model['errors'], 422
   else:
     return model['data'], 200
-  return
+    return
 
 @app.route("/api/activities/home", methods=['GET'])
 @xray_recorder.capture('activities_home')
 def data_home():
   access_token = CognitoJwtToken.extract_access_token(request.header)
-    try:
-      claims = cognito_jwt_token.token_service.verify(access.token)
-      # authenticated request
-      app.logger.debug("authenticated")
-      app.logger.debug('claims')
-      app.logger.debug(claims)
-    except TokenVerifyError as e:
-      # unauthenticated request  
-      app.logger.debug("unauthenticated")
-        abort(make_response(jsonify(message=str(e)), 401))
-
-
-  data = HomeActivities.run()
-
+  try:
+    claims = cognito_jwt_token.token_service.verify(access.token)
+    # authenticated request
+    app.logger.debug("authenticated")
+    app.logger.debug('claims')
+    app.logger.debug(claims['username'])
+    data = Homeacctivities.run(cognito_user_id=claims['username'])
+  except TokenVerifyError as e:
+    # unauthenticated request 
+    app.logger.debug(e) 
+    app.logger.debug("unauthenticated")
+    data = HomeActivities.run()
   return data, 200
 
 @app.route("/api/activities/@<string:handle>", methods=['GET'])
