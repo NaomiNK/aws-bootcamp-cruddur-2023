@@ -28,7 +28,7 @@ class CognitoJwtToken:
         keys_url = f"https://cognito-idp.{self.region}.amazonaws.com/{self.user_pool_id}/.well-known/jwks.json"
         try:
             response = self.request_client(keys_url)
-            self.jwk_keys = response.json()["keys"]
+            self._load_jwk_keys = response.json()["keys"]
         except requests.exceptions.RequestException as e:
             raise FlaskAWSCognitoError(str(e)) from e
 
@@ -110,5 +110,5 @@ def verify(self, token, current_time=None):
         self._check_expiration(claims, current_time)
         self._check_audience(claims)
 
-        self.claims = claims
-        return claims
+          self.claims = claims
+                  return claims
