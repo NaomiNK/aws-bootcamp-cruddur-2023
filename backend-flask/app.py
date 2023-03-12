@@ -15,7 +15,7 @@ from services.messages import *
 from services.create_message import *
 from services.show_activity import *
 
-from lib.cognito_token import CognitoJwtToken, extract_access_token, TokenVerifyError
+from lib.cognito_token import CognitoJwtToken, Extract_Access_Token, TokenVerifyError
 
 # Honeycomb ...
 from opentelemetry import trace

@@ -24,14 +24,6 @@ class CognitoJwtToken:
             self.request_client = request_client
         self._load_jwk_keys()
 
- @classmethod
-def _extract_access_token(request_headers): 
-        access_token = None
-        auth_header = request_headers.get("Authorization")
-        if auth_header and " " in auth_header:
-         _, access_token = auth_header.split()
-        return access_token 
-
     def _load_jwk_keys(self):
         keys_url = f"https://cognito-idp.{self.region}.amazonaws.com/{self.user_pool_id}/.well-known/jwks.json"
         try:
@@ -40,15 +32,23 @@ def _extract_access_token(request_headers):
         except requests.exceptions.RequestException as e:
             raise FlaskAWSCognitoError(str(e)) from e
 
-    @staticmethod
-    def _extract_headers(token):
+class Extract_Access_Token:
+    def _Extract_Access_Token(request_headers): 
+        access_token = None
+        auth_header = request_headers.get("Authorization")
+        if auth_header and " " in auth_header:
+         _, access_token = auth_header.split()
+        return access_token 
+
+@staticmethod
+def _extract_headers(token):
         try:
             headers = jwt.get_unverified_headers(token)
             return headers
         except JOSEError as e:
             raise TokenVerifyError(str(e)) from e
 
-    def _find_pkey(self, headers):
+def _find_pkey(self, headers):
         kid = headers["kid"]
         # search for the kid in the downloaded public keys
         key_index = -1
@@ -60,8 +60,8 @@ def _extract_access_token(request_headers):
             raise TokenVerifyError("Public key not found in jwks.json")
         return self.jwk_keys[key_index]
 
-    @staticmethod
-    def _verify_signature(token, pkey_data):
+@staticmethod
+def _verify_signature(token, pkey_data):
         try:
             # construct the public key
             public_key = jwk.construct(pkey_data)
@@ -76,28 +76,28 @@ def _extract_access_token(request_headers):
         if not public_key.verify(message.encode("utf8"), decoded_signature):
             raise TokenVerifyError("Signature verification failed")
 
-    @staticmethod
-    def _extract_claims(token):
+@staticmethod
+def _extract_claims(token):
         try:
             claims = jwt.get_unverified_claims(token)
             return claims
         except JOSEError as e:
             raise TokenVerifyError(str(e)) from e
 
-    @staticmethod
-    def _check_expiration(claims, current_time):
+@staticmethod
+def _check_expiration(claims, current_time):
         if not current_time:
             current_time = time.time()
         if current_time > claims["exp"]:
             raise TokenVerifyError("Token is expired")  # probably another exception
 
-    def _check_audience(self, claims):
+def _check_audience(self, claims):
         # and the Audience  (use claims['client_id'] if verifying an access token)
         audience = claims["aud"] if "aud" in claims else claims["client_id"]
         if audience != self.user_pool_client_id:
             raise TokenVerifyError("Token was not issued for this audience")
 
-    def verify(self, token, current_time=None):
+def verify(self, token, current_time=None):
         """ https://github.com/awslabs/aws-support-tools/blob/master/Cognito/decode-verify-jwt/decode-verify-jwt.py """
         if not token:
             raise TokenVerifyError("No token provided")
