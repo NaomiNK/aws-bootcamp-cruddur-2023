@@ -39,6 +39,13 @@ class CognitoJwtToken:
         except requests.exceptions.RequestException as e:
             raise FlaskAWSCognitoError(str(e)) from e
 
+    def extract_access_token(self, request_headers): 
+        access_token = None
+        auth_header = request_headers.get("Authorization")
+        if auth_header and " " in auth_header:
+         _, access_token = auth_header.split()
+        return access_token 
+
 @staticmethod
 def _extract_headers(token):
         try:
