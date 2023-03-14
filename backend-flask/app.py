@@ -169,14 +169,18 @@ def data_home():
     # authenticated request
     app.logger.debug("authenticated")
     app.logger.debug('claims')
-    app.logger.debug(claims['username'])
-    data = Homeacctivities.run(cognito_user_id=claims['username'])
+    app.logger.debug('claims:',['username'])
+    data = HomeActivities.run(cognito_user_id=['username'])
   except TokenVerifyError as e:
     # unauthenticated request 
     app.logger.debug(e) 
     app.logger.debug("unauthenticated")
     data = HomeActivities.run()
-  return data, 200
+   
+  if data is not None:
+      return data, 200
+  else:
+      return "An error occurred"
 
 @app.route("/api/activities/@<string:handle>", methods=['GET'])
 @xray_recorder.capture('activities_users')
