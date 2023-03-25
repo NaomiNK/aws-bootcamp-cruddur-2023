@@ -75,7 +75,7 @@ class Db:
 
     with self.pool.connection() as conn:
       with conn.cursor() as cur:
-        cur.execute(wrapped_sql,params={})
+        cur.execute(wrapped_sql,params)
         json = cur.fetchone()
         if json == None:
           "{}"

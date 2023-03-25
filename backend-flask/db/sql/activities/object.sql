@@ -2,7 +2,7 @@ SELECT
   activities.uuid,
   users.display_name,
   users.handle,
-  activities.created_at,
+  activities.message,
   activities.created_at,
   activities.expires_at,
 FROM public.activities
